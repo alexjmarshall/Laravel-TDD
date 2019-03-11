@@ -9,22 +9,33 @@ class ProjectsController extends Controller
 {
     public function index()
     {
-        $projects = Project::all();
+        $projects = auth()->user()->projects();
 
         return view('projects.index')->with('projects', $projects);
     }
 
     public function store()
     {
-        $attributes = request()->validate(['title' => 'required', 'description' => 'required']);
-        
-        Project::create($attributes);
+        $attributes = request()->validate([
+            'title' => 'required', 
+            'description' => 'required'
+        ]);
+
+        auth()->user()->projects()->create($attributes);
 
         return redirect('/projects');
     }
 
     public function show(Project $project)
     {
+        if (auth()->user()->isNot($project->owner)) {
+            abort(403);
+        }
+
         return view('projects.show')->with('project', $project);
+    }
+
+    public function create() {
+        return view('projects.create');
     }
 }
